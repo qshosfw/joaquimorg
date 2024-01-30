@@ -132,7 +132,7 @@ volatile bool     gNextTimeslice_500ms;
 volatile uint16_t gTxTimerCountdown_500ms;
 volatile bool     gTxTimeoutReached;
 
-volatile uint16_t gTailNoteEliminationCountdown_10ms;
+volatile uint16_t gTailToneEliminationCountdown_10ms;
 
 volatile uint8_t    gVFOStateResumeCountdown_500ms;
 
@@ -143,7 +143,7 @@ volatile uint8_t    gVFOStateResumeCountdown_500ms;
 bool              gEnableSpeaker;
 uint8_t           gKeyInputCountdown = 0;
 uint8_t           gKeyLockCountdown;
-uint8_t           gRTTECountdown;
+uint8_t           gRTTECountdown_10ms;
 bool              bIsInLockScreen;
 uint8_t           gUpdateStatus;
 uint8_t           gFoundCTCSS;
@@ -198,6 +198,7 @@ bool              g_SquelchLost;
 
 volatile uint16_t gFlashLightBlinkCounter;
 
+bool              gFlagEndTransmission;
 uint8_t           gNextMrChannel;
 ReceptionMode_t   gRxReceptionMode;
 
@@ -236,7 +237,7 @@ volatile bool     gNextTimeslice40ms;
 	volatile uint16_t gNOAACountdown_10ms = 0;
 	volatile bool     gScheduleNOAA       = true;
 #endif
-volatile bool     gFlagTailNoteEliminationComplete;
+volatile bool     gFlagTailToneEliminationComplete;
 #ifdef ENABLE_FMRADIO
 	volatile bool gScheduleFM;
 #endif

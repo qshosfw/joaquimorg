@@ -315,7 +315,8 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 #ifdef ENABLE_DTMF_CALLING
 			pVfo->DTMF_DECODING_ENABLE = ((data[5] >> 0) & 1u) ? true : false;
 #endif
-			pVfo->DTMF_PTT_ID_TX_MODE  = ((data[5] >> 1) & 7u);
+			uint8_t pttId = ((data[5] >> 1) & 7u);
+			pVfo->DTMF_PTT_ID_TX_MODE  = pttId < ARRAY_SIZE(gSubMenu_PTT_ID) ? pttId : PTT_ID_OFF;
 		}
 
 		// ***************
@@ -502,11 +503,6 @@ void RADIO_ApplyOffset(VFO_Info_t *pInfo)
 			Frequency -= pInfo->TX_OFFSET_FREQUENCY;
 			break;
 	}
-
-	if (Frequency < frequencyBandTable[0].lower)
-		Frequency = frequencyBandTable[0].lower;
-	else if (Frequency > frequencyBandTable[BAND_N_ELEM - 1].upper)
-		Frequency = frequencyBandTable[BAND_N_ELEM - 1].upper;
 
 	pInfo->freq_config_TX.Frequency = Frequency;
 }
@@ -998,9 +994,9 @@ void RADIO_PrepareTX(void)
 
 	gTxTimerCountdown_500ms = 0;            // no timeout
 
-	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 	if (gAlarmState == ALARM_STATE_OFF)
-	#endif
+#endif
 	{
 		if (gEeprom.TX_TIMEOUT_TIMER == 0)
 			gTxTimerCountdown_500ms = 60;   // 30 sec
@@ -1011,22 +1007,23 @@ void RADIO_PrepareTX(void)
 	}
 
 	gTxTimeoutReached    = false;
-	gRTTECountdown       = 0;
+	gFlagEndTransmission = false;
+	gRTTECountdown_10ms  = 0;
 
 #ifdef ENABLE_DTMF_CALLING
 	gDTMF_ReplyState     = DTMF_REPLY_NONE;
 #endif
 }
 
-void RADIO_EnableCxCSS(void)
+void RADIO_SendCssTail(void)
 {
 	switch (gCurrentVfo->pTX->CodeType) {
 	case CODE_TYPE_DIGITAL:
 	case CODE_TYPE_REVERSE_DIGITAL:
-		BK4819_EnableCDCSS();
+		BK4819_PlayCDCSSTail();
 		break;
 	default:
-		BK4819_EnableCTCSS();
+		BK4819_PlayCTCSSTail();
 		break;
 	}
 
@@ -1039,7 +1036,8 @@ void RADIO_SendEndOfTransmission(void)
 	DTMF_SendEndOfTransmission();
 
 	// send the CTCSS/DCS tail tone - allows the receivers to mute the usual FM squelch tail/crash
-	RADIO_EnableCxCSS();
+	if(gEeprom.TAIL_TONE_ELIMINATION)
+		RADIO_SendCssTail();
 	RADIO_SetupRegisters(false);
 }
 
@@ -1049,7 +1047,8 @@ void RADIO_PrepareCssTX(void)
 
 	SYSTEM_DelayMs(200);
 
-	RADIO_EnableCxCSS();
+	if(gEeprom.TAIL_TONE_ELIMINATION)
+		RADIO_SendCssTail();
 	RADIO_SetupRegisters(true);
 }
 
