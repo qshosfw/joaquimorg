@@ -110,7 +110,7 @@ void GENERIC_Key_PTT(bool bKeyPressed)
 				FUNCTION_Select(FUNCTION_FOREGROUND);
 			}
 			else {
-				APP_EndTransmission();
+				APP_EndTransmission(true);
 
 				if (gEeprom.REPEATER_TAIL_TONE_ELIMINATION == 0)
 					FUNCTION_Select(FUNCTION_FOREGROUND);
