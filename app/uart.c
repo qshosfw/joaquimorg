@@ -817,6 +817,16 @@ void remove(char cstring[], char letter) {
         if(cstring[i] == letter) cstring[i] = '\0';
     } 
 }
+bool findchar(uint8_t start, char letter) {
+    for(int i = start; UART_DMA_Buffer[i] != '\0'; i++) {
+        if(UART_DMA_Buffer[i] == letter) return true;
+    } 
+	return false;
+}
+
+uint8_t txtStart = 0;
+bool newTxtMsg = false;
+
 #endif
 
 bool UART_IsCommandAvailable(void)
@@ -836,10 +846,16 @@ bool UART_IsCommandAvailable(void)
 #if defined(ENABLE_MESSENGER) || defined(ENABLE_MESSENGER_UART)
 
 		if ( UART_DMA_Buffer[gUART_WriteIndex] == 'S' && UART_DMA_Buffer[gUART_WriteIndex + 1] == 'M' && UART_DMA_Buffer[ gUART_WriteIndex + 2] == 'S' && UART_DMA_Buffer[gUART_WriteIndex + 3] == ':') {
-		
+			txtStart = gUART_WriteIndex;
+			newTxtMsg = true;
+			//UART_printf("1:%s\r\n", &UART_DMA_Buffer[txtStart]);
+		}
+
+		if (findchar(txtStart, '\n') && newTxtMsg) {
+			//UART_printf("2:%s\r\n", &UART_DMA_Buffer[txtStart]);
 			char txMessage[TX_MSG_LENGTH + 4];
 			memset(txMessage, 0, sizeof(txMessage));
-			snprintf(txMessage, (TX_MSG_LENGTH + 4), "%s", &UART_DMA_Buffer[gUART_WriteIndex + 4]);
+			snprintf(txMessage, (TX_MSG_LENGTH + 4), "%s", &UART_DMA_Buffer[txtStart + 4]);
 
 			remove(txMessage, '\n');
 			remove(txMessage, '\r');      
@@ -848,12 +864,20 @@ bool UART_IsCommandAvailable(void)
 				MSG_Send(txMessage, false);
 				UART_printf("SMS>%s\r\n", txMessage);
 				gUpdateDisplay = true;
-			}			
+			}
+			newTxtMsg = false;
+			txtStart = 0;
+			memset(UART_DMA_Buffer, 0, sizeof(UART_DMA_Buffer));
+			gUART_WriteIndex = 0;
+			return false;			
 		}
-  
-#endif  
+		
+		while (gUART_WriteIndex != DmaLength && UART_DMA_Buffer[gUART_WriteIndex] != 0xABU && UART_DMA_Buffer[gUART_WriteIndex] != 'S')
+			gUART_WriteIndex = DMA_INDEX(gUART_WriteIndex, 1);
+#else  
 		while (gUART_WriteIndex != DmaLength && UART_DMA_Buffer[gUART_WriteIndex] != 0xABU)
 			gUART_WriteIndex = DMA_INDEX(gUART_WriteIndex, 1);
+#endif  
 
 		if (gUART_WriteIndex == DmaLength)
 			return false;
