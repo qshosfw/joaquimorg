@@ -22,10 +22,6 @@
 	#include "app/messenger.h"
 #endif
 
-#ifdef ENABLE_AM_FIX
-	#include "am_fix.h"
-#endif
-
 #include "audio.h"
 #include "board.h"
 #include "misc.h"
@@ -119,10 +115,6 @@ void Main(void)
 
 #ifdef ENABLE_MESSENGER
 	MSG_Init();
-#endif
-
-#ifdef ENABLE_AM_FIX
-	AM_fix_init();
 #endif
 
 	const BOOT_Mode_t  BootMode = BOOT_GetMode();

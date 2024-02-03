@@ -152,10 +152,6 @@ extern bool                  gSetting_ScrambleEnable;
 
 extern enum BacklightOnRxTx_t gSetting_backlight_on_tx_rx;
 
-#ifdef ENABLE_AM_FIX
-	extern bool              gSetting_AM_fix;
-#endif
-
 #ifdef ENABLE_AUDIO_BAR
 	extern bool              gSetting_mic_bar;
 #endif
@@ -187,6 +183,13 @@ typedef union {
 } ChannelAttributes_t;
 
 extern ChannelAttributes_t   gMR_ChannelAttributes[207];
+
+typedef struct
+{
+	uint8_t      sLevel; // S-level value
+	uint8_t      over;   // over S9 value
+	int          dBmRssi;// RSSI in dBm
+}  __attribute__((packed))  sLevelAttributes;
 
 extern volatile uint16_t     gBatterySaveCountdown_10ms;
 
@@ -329,5 +332,8 @@ unsigned long StrToUL(const char * str);
 void FUNCTION_NOP();
 
 inline bool SerialConfigInProgress() { return gSerialConfigCountDown_500ms != 0; }
+
+sLevelAttributes GetSLevelAttributes (const int16_t rssi, const uint32_t frequency);
+int Rssi2DBm(const uint16_t rssi);
 
 #endif

@@ -273,9 +273,9 @@ void SETTINGS_InitEEPROM(void)
 	#ifdef ENABLE_AUDIO_BAR
 		gSetting_mic_bar       = !!(Data[7] & (1u << 4));
 	#endif
-	#ifdef ENABLE_AM_FIX
-		gSetting_AM_fix        = !!(Data[7] & (1u << 5));
-	#endif
+	
+	//gSetting_AM_fix        = !!(Data[7] & (1u << 5));
+
 	gSetting_backlight_on_tx_rx = (Data[7] >> 6) & 3u;
 
 	if (!gEeprom.VFO_OPEN)
@@ -634,9 +634,9 @@ void SETTINGS_SaveSettings(void)
 	#ifdef ENABLE_AUDIO_BAR
 		if (!gSetting_mic_bar)           State[7] &= ~(1u << 4);
 	#endif
-	#ifdef ENABLE_AM_FIX
-		if (!gSetting_AM_fix)            State[7] &= ~(1u << 5);
-	#endif
+
+	//if (!gSetting_AM_fix)            State[7] &= ~(1u << 5);
+
 	State[7] = (State[7] & ~(3u << 6)) | ((gSetting_backlight_on_tx_rx & 3u) << 6);
 
 	EEPROM_WriteBuffer(0x0F40, State);
@@ -801,9 +801,6 @@ buf[1] = 0
 #endif
 #ifdef ENABLE_BLMIN_TMP_OFF
     | (1 << 3)
-#endif
-#ifdef ENABLE_AM_FIX
-    | (1 << 4)
 #endif
 ;
 	EEPROM_WriteBuffer(0x1FF0, buf);

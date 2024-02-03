@@ -19,9 +19,6 @@
 
 #include "app/chFrScanner.h"
 #include "app/dtmf.h"
-#ifdef ENABLE_AM_FIX
-	#include "am_fix.h"
-#endif
 #include "bitmaps.h"
 #include "board.h"
 #include "driver/bk4819.h"
@@ -169,6 +166,7 @@ void DisplayRSSIBar(const bool now)
 {
 #if defined(ENABLE_RSSI_BAR)
 
+	const int16_t rssi = BK4819_GetRSSI();
 	const unsigned int txt_width    = 7 * 8;                 // 8 text chars
 	const unsigned int bar_x        = 2 + txt_width + 4;     // X coord of bar graph
 
@@ -201,29 +199,22 @@ void DisplayRSSIBar(const bool now)
 		memset(p_line, 0, LCD_WIDTH);
 
 
-	const int16_t s0_dBm   = -gEeprom.S0_LEVEL;                  // S0 .. base level
-	const int16_t rssi_dBm =
-		BK4819_GetRSSI_dBm()
-#ifdef ENABLE_AM_FIX
-		+ ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM) ? AM_fix_get_gain_diff() : 0)
-#endif
-		+ dBmCorrTable[gRxVfo->Band];
-
-	int s0_9 = gEeprom.S0_LEVEL - gEeprom.S9_LEVEL;
-	const uint8_t s_level = MIN(MAX((int32_t)(rssi_dBm - s0_dBm)*100 / (s0_9*100/9), 0), 9); // S0 - S9
-	uint8_t overS9dBm = MIN(MAX(rssi_dBm + gEeprom.S9_LEVEL, 0), 99);
-	uint8_t overS9Bars = MIN(overS9dBm/10, 4);
-
+	sLevelAttributes sLevelAtt;
+		
+	sLevelAtt = GetSLevelAttributes(rssi, gRxVfo->freq_config_RX.Frequency);
+	
+	uint8_t overS9Bars = MIN(sLevelAtt.over/10, 4);
+	
 	if(overS9Bars == 0) {
-		sprintf(str, "% 4d S%d", rssi_dBm, s_level);
+		sprintf(str, "% 4d S%d", sLevelAtt.dBmRssi, sLevelAtt.sLevel); 
 	}
 	else {
-		sprintf(str, "% 4d  %2d", rssi_dBm, overS9dBm);
+		sprintf(str, "% 4d  %2d", sLevelAtt.dBmRssi, sLevelAtt.over);
 		memcpy(p_line + 2 + 7*5, &plus, ARRAY_SIZE(plus));
 	}
 
 	UI_PrintStringSmallNormal(str, 2, 0, line);
-	DrawLevelBar(bar_x, line, s_level + overS9Bars);
+	DrawLevelBar(bar_x, line, sLevelAtt.sLevel + overS9Bars);
 
 	if (now)
 		ST7565_BlitLine(line);
@@ -765,23 +756,6 @@ void UI_DisplayMain(void)
 		if (gSetting_mic_bar && gCurrentFunction == FUNCTION_TRANSMIT) {
 			center_line = CENTER_LINE_AUDIO_BAR;
 			UI_DisplayAudioBar();
-		}
-		else
-#endif
-
-#if defined(ENABLE_AM_FIX) && defined(ENABLE_AM_FIX_SHOW_DATA)
-		if (rx && gEeprom.VfoInfo[gEeprom.RX_VFO].Modulation == MODULATION_AM && gSetting_AM_fix)
-		{
-			if (gScreenToDisplay != DISPLAY_MAIN
-#ifdef ENABLE_DTMF_CALLING
-				|| gDTMF_CallState != DTMF_CALL_STATE_NONE
-#endif
-				)
-				return;
-
-			center_line = CENTER_LINE_AM_FIX_DATA;
-			AM_fix_print_data(gEeprom.RX_VFO, String);
-			UI_PrintStringSmallNormal(String, 2, 0, 3);
 		}
 		else
 #endif
