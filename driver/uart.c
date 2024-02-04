@@ -40,7 +40,12 @@ void UART_Init(void)
 		Frequency = 48000000U - Frequency;
 	}
 
+	// 48M, the baud rate is set to 115200, then UARTDIV=48000000/115200=416.6, 417 can be selected based on rounding.
 	UART1->BAUD = Frequency / 38400U;
+	
+	//UART1->BAUD = Frequency / 115200;
+	//UART1->BAUD = Frequency / 128000;
+
 	UART1->CTRL = UART_CTRL_RXEN_BITS_ENABLE | UART_CTRL_TXEN_BITS_ENABLE | UART_CTRL_RXDMAEN_BITS_ENABLE;
 	UART1->RXTO = 4;
 	UART1->FC = 0;

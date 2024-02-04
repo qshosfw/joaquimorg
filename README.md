@@ -1,13 +1,26 @@
+
+> [!WARNING]
+> This repository is not intended to be a final version with 100% of all features, there may even be some features present in the original that are not here.
+> What I want with this repository is to have a place to experiment with new features that I find interesting, these features can and should be used in other repositories and improved.
+> I would like to thank everyone who reports problems they have encountered, however these may not be resolved.
+> If you want to have a more stable FW and even with more features, I advise you to look at other options.
+
 # Open re-implementation of the Quansheng UV-K5/K6/5R v2.1.27 firmware
 
-This repository is a merge of [OneOfEleven custom firmware](https://github.com/OneOfEleven/uv-k5-firmware-custom) with [fagci spectrum analizer](https://github.com/fagci/uv-k5-firmware-fagci-mod) plus my few changes.<br>
+This repository is a merge of [OneOfEleven custom firmware](https://github.com/OneOfEleven/uv-k5-firmware-custom) with [fagci spectrum analizer](https://github.com/fagci/uv-k5-firmware-fagci-mod) and others.<br>
 All is a cloned and customized version of DualTachyon's open firmware found [here](https://github.com/DualTachyon/uv-k5-firmware) ... a cool achievement !
 
 > [!TIP]
-> There is a work done by others on forks of this repository. I encourage you to take a look at those too.
-You can use below links to see comparison between forks.<br>
-https://gitpop2.vercel.app/egzumer/uv-k5-firmware-custom<br>
-https://useful-forks.github.io/?repo=egzumer/uv-k5-firmware-custom
+> Same work done by others. I encourage you to take a look at those too.
+> [OneOfEleven](https://github.com/OneOfEleven)
+> [DualTachyon](https://github.com/DualTachyon)
+> [Mikhail](https://github.com/fagci)
+> [Nunu (kamilsss655)](https://github.com/kamilsss655)
+> [Andrej (Tunas1337)](https://github.com/Tunas1337)
+> [Manuel](https://github.com/manujedi)
+> [@Matoz (spm81)](https://github.com/spm81)
+> [OneOfEleven](https://github.com/OneOfEleven)
+
 
 > [!WARNING]  
 > *Use this firmware at your own risk (entirely). There is absolutely no guarantee that it will work in any way shape or form on your radio(s), it may even brick your radio(s), in which case, you'd need to buy another radio.*
@@ -121,7 +134,6 @@ You'll find the options at the top of "Makefile" ('0' = disable, '1' = enable) .
 | ENABLE_SHOW_CHARGE_LEVEL | show the charge level when the radio is on charge |
 | ENABLE_REVERSE_BAT_SYMBOL | mirror the battery symbol on the status bar (+ pole on the right) |
 | ENABLE_NO_CODE_SCAN_TIMEOUT | disable 32-sec CTCSS/DCS scan timeout (press exit butt instead of time-out to end scan) |
-
 | ENABLE_SQUELCH_MORE_SENSITIVE | make squelch levels a little bit more sensitive - I plan to let user adjust the values themselves |
 | ENABLE_FASTER_CHANNEL_SCAN | increases the channel scan speed, but the squelch is also made more twitchy |
 | ENABLE_RSSI_BAR | enable a dBm/Sn RSSI bar graph level in place of the little antenna symbols |
@@ -216,6 +228,7 @@ Many thanks to various people on Telegram for putting up with me during this eff
 * [OneOfEleven](https://github.com/OneOfEleven)
 * [DualTachyon](https://github.com/DualTachyon)
 * [Mikhail](https://github.com/fagci)
+* [Nunu](https://github.com/kamilsss655/uv-k5-firmware-custom)
 * [Andrej](https://github.com/Tunas1337)
 * [Manuel](https://github.com/manujedi)
 * @wagner
@@ -234,12 +247,12 @@ Many thanks to various people on Telegram for putting up with me during this eff
 
 ## License
 
-Copyright 2023 Dual Tachyon
-https://github.com/DualTachyon
+    Copyright 2023 Dual Tachyon
+    https://github.com/DualTachyon
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
     http://www.apache.org/licenses/LICENSE-2.0
 
