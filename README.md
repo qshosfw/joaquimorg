@@ -12,14 +12,14 @@ All is a cloned and customized version of DualTachyon's open firmware found [her
 
 > [!TIP]
 > Same work done by others. I encourage you to take a look at those too.
-> [OneOfEleven](https://github.com/OneOfEleven)
-> [DualTachyon](https://github.com/DualTachyon)
-> [Mikhail](https://github.com/fagci)
-> [Nunu (kamilsss655)](https://github.com/kamilsss655)
-> [Andrej (Tunas1337)](https://github.com/Tunas1337)
-> [Manuel](https://github.com/manujedi)
-> [@Matoz (spm81)](https://github.com/spm81)
-> [OneOfEleven](https://github.com/OneOfEleven)
+> [OneOfEleven](https://github.com/OneOfEleven) <br>
+> [DualTachyon](https://github.com/DualTachyon) <br>
+> [Mikhail](https://github.com/fagci) <br>
+> [Nunu (kamilsss655)](https://github.com/kamilsss655) <br>
+> [Andrej (Tunas1337)](https://github.com/Tunas1337) <br>
+> [Manuel](https://github.com/manujedi) <br>
+> [@Matoz (spm81)](https://github.com/spm81) <br>
+> [OneOfEleven](https://github.com/OneOfEleven) <br>
 
 
 > [!WARNING]  
