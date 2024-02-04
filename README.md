@@ -11,7 +11,7 @@ This repository is a merge of [OneOfEleven custom firmware](https://github.com/O
 All is a cloned and customized version of DualTachyon's open firmware found [here](https://github.com/DualTachyon/uv-k5-firmware) ... a cool achievement !
 
 > [!TIP]
-> Same work done by others. I encourage you to take a look at those too.
+> Same work done by others. I encourage you to take a look at those for a more stable and complete FW. <br>
 > [OneOfEleven](https://github.com/OneOfEleven) <br>
 > [DualTachyon](https://github.com/DualTachyon) <br>
 > [Mikhail](https://github.com/fagci) <br>
