@@ -388,7 +388,8 @@ ifeq ($(ENABLE_MESSENGER_UART),1)
 endif
 
 # C flags common to all targets
-CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
+#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
+CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-delete-null-pointer-checks -std=c11 -MMD
 CFLAGS += -flto=auto
 CFLAGS += -Wextra
 

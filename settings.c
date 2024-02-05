@@ -295,7 +295,7 @@ void SETTINGS_InitEEPROM(void)
 	}
 
 	// 0F30..0F3F
-	EEPROM_ReadBuffer(0x0F30, gCustomAesKey, sizeof(gCustomAesKey));
+	/*EEPROM_ReadBuffer(0x0F30, gCustomAesKey, sizeof(gCustomAesKey));
 	bHasCustomAesKey = false;
 	for (unsigned int i = 0; i < ARRAY_SIZE(gCustomAesKey); i++)
 	{
@@ -304,7 +304,7 @@ void SETTINGS_InitEEPROM(void)
 			bHasCustomAesKey = true;
 			return;
 		}
-	}
+	}*/
 }
 
 void SETTINGS_LoadCalibration(void)
