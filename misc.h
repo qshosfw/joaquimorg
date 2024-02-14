@@ -152,14 +152,6 @@ extern bool                  gSetting_ScrambleEnable;
 
 extern enum BacklightOnRxTx_t gSetting_backlight_on_tx_rx;
 
-#ifdef ENABLE_AM_FIX
-	extern bool              gSetting_AM_fix;
-#endif
-
-#ifdef ENABLE_DOCK
-	extern bool		  		 gSetting_Remote_UI;
-#endif
-
 #ifdef ENABLE_AUDIO_BAR
 	extern bool              gSetting_mic_bar;
 #endif
@@ -192,6 +184,13 @@ typedef union {
 
 extern ChannelAttributes_t   gMR_ChannelAttributes[207];
 
+typedef struct
+{
+	uint8_t      sLevel; // S-level value
+	uint8_t      over;   // over S9 value
+	int          dBmRssi;// RSSI in dBm
+}  __attribute__((packed))  sLevelAttributes;
+
 extern volatile uint16_t     gBatterySaveCountdown_10ms;
 
 extern volatile bool         gPowerSaveCountdownExpired;
@@ -209,7 +208,7 @@ extern volatile bool         gNextTimeslice_500ms;
 extern volatile uint16_t     gTxTimerCountdown_500ms;
 extern volatile bool         gTxTimeoutReached;
 
-extern volatile uint16_t     gTailNoteEliminationCountdown_10ms;
+extern volatile uint16_t     gTailToneEliminationCountdown_10ms;
 
 #ifdef ENABLE_NOAA
 	extern volatile uint16_t gNOAA_Countdown_10ms;
@@ -217,7 +216,7 @@ extern volatile uint16_t     gTailNoteEliminationCountdown_10ms;
 extern bool                  gEnableSpeaker;
 extern uint8_t               gKeyInputCountdown;
 extern uint8_t               gKeyLockCountdown;
-extern uint8_t               gRTTECountdown;
+extern uint8_t               gRTTECountdown_10ms;
 extern bool                  bIsInLockScreen;
 extern uint8_t               gUpdateStatus;
 extern uint8_t               gFoundCTCSS;
@@ -283,6 +282,7 @@ extern bool                  g_SquelchLost;
 
 extern volatile uint16_t     gFlashLightBlinkCounter;
 
+extern bool                  gFlagEndTransmission;
 extern uint8_t               gNextMrChannel;
 extern ReceptionMode_t       gRxReceptionMode;
 
@@ -318,7 +318,7 @@ extern volatile bool         gNextTimeslice40ms;
 	extern volatile uint16_t gNOAACountdown_10ms;
 	extern volatile bool     gScheduleNOAA;
 #endif
-extern volatile bool         gFlagTailNoteEliminationComplete;
+extern volatile bool         gFlagTailToneEliminationComplete;
 extern volatile uint8_t      gVFOStateResumeCountdown_500ms;
 #ifdef ENABLE_FMRADIO
 	extern volatile bool     gScheduleFM;
@@ -332,5 +332,8 @@ unsigned long StrToUL(const char * str);
 void FUNCTION_NOP();
 
 inline bool SerialConfigInProgress() { return gSerialConfigCountDown_500ms != 0; }
+
+sLevelAttributes GetSLevelAttributes (const int16_t rssi, const uint32_t frequency);
+int Rssi2DBm(const uint16_t rssi);
 
 #endif

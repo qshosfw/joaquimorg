@@ -234,12 +234,13 @@ void ACTION_Scan(bool bRestart)
 
 void ACTION_SwitchDemodul(void)
 {
-	gRequestSaveChannel = 1;
-
+	if(gTxVfo->Modulation==MODULATION_AM)
+			BK4819_SetDefaultAmplifierSettings();
+			
 	gTxVfo->Modulation++;
-
 	if(gTxVfo->Modulation == MODULATION_UKNOWN)
 		gTxVfo->Modulation = MODULATION_FM;
+	gRequestSaveChannel = 1;
 }
 
 

@@ -14,7 +14,6 @@
  *     limitations under the License.
  */
 #include "app/spectrum.h"
-#include "am_fix.h"
 #include "audio.h"
 #include "misc.h"
 
@@ -119,9 +118,9 @@ static uint8_t DBm2S(int dbm) {
   return i;
 }
 
-static int Rssi2DBm(uint16_t rssi) {
+/*static int Rssi2DBm(uint16_t rssi) {
   return (rssi / 2) - 160 + dBmCorrTable[gRxVfo->Band];
-}
+}*/
 
 static uint16_t GetRegMenuValue(uint8_t st) {
   RegisterSpec s = registerSpecs[st];
@@ -299,10 +298,7 @@ uint16_t GetRssi() {
     SYSTICK_DelayUs(50);
   }
   uint16_t rssi = BK4819_GetRSSI();
-#ifdef ENABLE_AM_FIX
-  if(settings.modulationType==MODULATION_AM && gSetting_AM_fix)
-    rssi += AM_fix_get_gain_diff()*2;
-#endif
+
   return rssi;
 }
 
@@ -1278,14 +1274,6 @@ static void UpdateListening() {
 }
 
 static void Tick() {
-#ifdef ENABLE_AM_FIX
-  if (gNextTimeslice) {
-    gNextTimeslice = false;
-    if(settings.modulationType == MODULATION_AM && !lockAGC) {
-      AM_fix_10ms(vfo); //allow AM_Fix to apply its AGC action
-    }
-  }
-#endif
 
 #ifdef ENABLE_SCAN_RANGES
   if (gNextTimeslice_500ms) {

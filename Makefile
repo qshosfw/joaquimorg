@@ -29,7 +29,6 @@ ENABLE_BOOT_BEEPS             ?= 0
 ENABLE_SHOW_CHARGE_LEVEL      ?= 0
 ENABLE_REVERSE_BAT_SYMBOL     ?= 0
 ENABLE_NO_CODE_SCAN_TIMEOUT   ?= 1
-ENABLE_AM_FIX                 ?= 1
 ENABLE_SQUELCH_MORE_SENSITIVE ?= 1
 ENABLE_FASTER_CHANNEL_SCAN    ?= 1
 ENABLE_RSSI_BAR               ?= 1
@@ -42,7 +41,6 @@ ENABLE_BLMIN_TMP_OFF          ?= 0
 ENABLE_SCAN_RANGES            ?= 0
 
 # ---- DEBUGGING ----
-ENABLE_AM_FIX_SHOW_DATA       ?= 0
 ENABLE_AGC_SHOW_DATA          ?= 0
 ENABLE_UART_RW_BK_REGS        ?= 0
 
@@ -56,24 +54,21 @@ ENABLE_LTO                    ?= 1
 
 # --- joaquim.org
 ENABLE_MESSENGER              			?= 1
-ENABLE_MESSENGER_DELIVERY_NOTIFICATION	?= 1
+ENABLE_MESSENGER_DELIVERY_NOTIFICATION	?= 0
 ENABLE_MESSENGER_NOTIFICATION			?= 1
 ENABLE_MESSENGER_UART					?= 1
 
 # Work in progress
 ENABLE_PMR_MODE               ?= 0
 
-# --- https://github.com/nicsure/quansheng-dock-fw
-# --- https://github.com/nicsure/QuanshengDock
-ENABLE_DOCK                   ?= 0
 
 #### INTERNAL USE ####
 ENABLE_SCREEN_DUMP			  ?= 0
 
 #------------------------------------------------------------------------------
 AUTHOR_STRING ?= JOAQUIM
-VERSION_STRING ?= V0.3.1
-PROJECT_NAME := cfw_joaquimorg_oefw_V0.3.1
+VERSION_STRING ?= V0.3.4
+PROJECT_NAME := cfw_joaquimorg_oefw_V0.3.4
 
 BUILD := _build
 BIN := firmware
@@ -214,9 +209,6 @@ endif
 ifeq ($(ENABLE_MESSENGER),1)
 	C_SRC += app/messenger.c
 endif
-ifeq ($(ENABLE_AM_FIX), 1)
-	C_SRC += am_fix.c
-endif
 ifeq ($(ENABLE_AIRCOPY),1)
 	C_SRC += ui/aircopy.c
 endif
@@ -251,9 +243,6 @@ CFLAGS += -DAUTHOR_STRING=\"$(AUTHOR_STRING)\" -DVERSION_STRING=\"$(VERSION_STRI
 
 ifeq ($(ENABLE_SCREEN_DUMP),1)
 	CFLAGS += -DENABLE_SCREEN_DUMP
-endif
-ifeq ($(ENABLE_DOCK),1)
-	CFLAGS += -DENABLE_DOCK
 endif
 ifeq ($(ENABLE_PMR_MODE),1)
 	CFLAGS  += -DENABLE_PMR_MODE
@@ -328,13 +317,7 @@ ifeq ($(ENABLE_REVERSE_BAT_SYMBOL),1)
 	CFLAGS  += -DENABLE_REVERSE_BAT_SYMBOL
 endif
 ifeq ($(ENABLE_NO_CODE_SCAN_TIMEOUT),1)
-	CFLAGS  += -DENABLE_CODE_SCAN_TIMEOUT
-endif
-ifeq ($(ENABLE_AM_FIX),1)
-	CFLAGS  += -DENABLE_AM_FIX
-endif
-ifeq ($(ENABLE_AM_FIX_SHOW_DATA),1)
-	CFLAGS  += -DENABLE_AM_FIX_SHOW_DATA
+	CFLAGS  += -DENABLE_NO_CODE_SCAN_TIMEOUT
 endif
 ifeq ($(ENABLE_SQUELCH_MORE_SENSITIVE),1)
 	CFLAGS  += -DENABLE_SQUELCH_MORE_SENSITIVE
@@ -405,7 +388,8 @@ ifeq ($(ENABLE_MESSENGER_UART),1)
 endif
 
 # C flags common to all targets
-CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
+#CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-builtin -fshort-enums -fno-delete-null-pointer-checks -std=c2x -MMD
+CFLAGS += -Os -Wall -Werror -mcpu=cortex-m0 -fno-delete-null-pointer-checks -std=c11 -MMD
 CFLAGS += -flto=auto
 CFLAGS += -Wextra
 

@@ -73,14 +73,14 @@ void     BK4819_WriteU8(uint8_t Data);
 void     BK4819_WriteU16(uint16_t Data);
 
 void     BK4819_SetAGC(bool enable);
-void     BK4819_InitAGC(bool amModulation);
+void     BK4819_InitAGC();
 
 void     BK4819_ToggleGpioOut(BK4819_GPIO_PIN_t Pin, bool bSet);
 
 void     BK4819_SetCDCSSCodeWord(uint32_t CodeWord);
 void     BK4819_SetCTCSSFrequency(uint32_t BaudRate);
 void     BK4819_SetTailDetection(const uint32_t freq_10Hz);
-void     BK4819_EnableVox(uint16_t Vox1Threshold, uint16_t Vox0Threshold);
+void 	 BK4819_EnableVox(uint16_t VoxEnableThreshold, uint16_t VoxDisableThreshold, uint8_t VoxDelay);
 void     BK4819_SetFilterBandwidth(const BK4819_FilterBandwidth_t Bandwidth, const bool weak_no_different);
 void     BK4819_SetupPowerAmplifier(const uint8_t bias, const uint32_t frequency);
 void     BK4819_SetFrequency(uint32_t Frequency);
@@ -91,7 +91,7 @@ void     BK4819_SetupSquelch(
 			uint8_t SquelchCloseNoiseThresh,
 			uint8_t SquelchCloseGlitchThresh,
 			uint8_t SquelchOpenGlitchThresh);
-
+void 	 BK4819_SetDefaultAmplifierSettings();
 void     BK4819_SetAF(BK4819_AF_Type_t AF);
 void     BK4819_RX_TurnOn(void);
 void     BK4819_PickRXFilterPathBasedOnFrequency(uint32_t Frequency);
@@ -136,8 +136,6 @@ void     BK4819_EnableCDCSS(void);
 void     BK4819_EnableCTCSS(void);
 
 uint16_t BK4819_GetRSSI(void);
-int8_t   BK4819_GetRxGain_dB(void);
-int16_t  BK4819_GetRSSI_dBm(void);
 uint8_t  BK4819_GetGlitchIndicator(void);
 uint8_t  BK4819_GetExNoiceIndicator(void);
 uint16_t BK4819_GetVoiceAmplitudeOut(void);

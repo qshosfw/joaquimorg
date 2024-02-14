@@ -18,7 +18,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "am_fix.h"
 #include "app/action.h"
 
 #ifdef ENABLE_AIRCOPY
@@ -260,14 +259,12 @@ static void HandleReceive(void)
 
 	uint8_t Mode = END_OF_RX_MODE_SKIP;
 
-	if (gFlagTailNoteEliminationComplete)
-	{
+	if (gFlagTailToneEliminationComplete) {
 		Mode = END_OF_RX_MODE_END;
 		goto Skip;
 	}
 
-	if (gScanStateDir != SCAN_OFF && IS_FREQ_CHANNEL(gNextMrChannel))
-	{ // we are scanning in the frequency mode
+	if (gScanStateDir != SCAN_OFF && IS_FREQ_CHANNEL(gNextMrChannel)) { // we are scanning in the frequency mode
 		if (g_SquelchLost)
 			return;
 
@@ -275,30 +272,41 @@ static void HandleReceive(void)
 		goto Skip;
 	}
 
-	if (gCurrentCodeType != CODE_TYPE_OFF
-		&& ((gFoundCTCSS && gFoundCTCSSCountdown_10ms == 0)
-			|| (gFoundCDCSS && gFoundCDCSSCountdown_10ms == 0))
-	){
-		gFoundCTCSS = false;
-		gFoundCDCSS = false;
-		Mode        = END_OF_RX_MODE_END;
-		goto Skip;
+	switch (gCurrentCodeType) {
+		default:
+		case CODE_TYPE_OFF:
+			break;
+
+		case CODE_TYPE_CONTINUOUS_TONE:
+			if (gFoundCTCSS && gFoundCTCSSCountdown_10ms == 0) {
+				gFoundCTCSS = false;
+				gFoundCDCSS = false;
+				Mode        = END_OF_RX_MODE_END;
+				goto Skip;
+			}
+			break;
+
+		case CODE_TYPE_DIGITAL:
+		case CODE_TYPE_REVERSE_DIGITAL:
+			if (gFoundCDCSS && gFoundCDCSSCountdown_10ms == 0) {
+				gFoundCTCSS = false;
+				gFoundCDCSS = false;
+				Mode        = END_OF_RX_MODE_END;
+				goto Skip;
+			}
+			break;
 	}
 
-	if (g_SquelchLost)
-	{
+	if (g_SquelchLost) {
 		if (!gEndOfRxDetectedMaybe
 #ifdef ENABLE_NOAA
-			&& !IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE)
+		&& !IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE)
 #endif
-		){
-			switch (gCurrentCodeType)
-			{
+		) {
+			switch (gCurrentCodeType) {
 				case CODE_TYPE_OFF:
-					if (gEeprom.SQUELCH_LEVEL)
-					{
-						if (g_CxCSS_TAIL_Found)
-						{
+					if (gEeprom.SQUELCH_LEVEL) {
+						if (g_CxCSS_TAIL_Found) {
 							Mode               = END_OF_RX_MODE_TTE;
 							g_CxCSS_TAIL_Found = false;
 						}
@@ -306,19 +314,15 @@ static void HandleReceive(void)
 					break;
 
 				case CODE_TYPE_CONTINUOUS_TONE:
-					if (g_CTCSS_Lost)
-					{
+					if (g_CTCSS_Lost) {
 						gFoundCTCSS = false;
 					}
-					else
-					if (!gFoundCTCSS)
-					{
+					else if (!gFoundCTCSS) {
 						gFoundCTCSS               = true;
 						gFoundCTCSSCountdown_10ms = 100;   // 1 sec
 					}
 
-					if (g_CxCSS_TAIL_Found)
-					{
+					if (g_CxCSS_TAIL_Found) {
 						Mode               = END_OF_RX_MODE_TTE;
 						g_CxCSS_TAIL_Found = false;
 					}
@@ -326,19 +330,15 @@ static void HandleReceive(void)
 
 				case CODE_TYPE_DIGITAL:
 				case CODE_TYPE_REVERSE_DIGITAL:
-					if (g_CDCSS_Lost && gCDCSSCodeType == CDCSS_POSITIVE_CODE)
-					{
+					if (g_CDCSS_Lost && gCDCSSCodeType == CDCSS_POSITIVE_CODE) {
 						gFoundCDCSS = false;
 					}
-					else
-					if (!gFoundCDCSS)
-					{
+					else if (!gFoundCDCSS) {
 						gFoundCDCSS               = true;
 						gFoundCDCSSCountdown_10ms = 100;   // 1 sec
 					}
 
-					if (g_CxCSS_TAIL_Found)
-					{
+					if (g_CxCSS_TAIL_Found) {
 						if (BK4819_GetCTCType() == 1)
 							Mode = END_OF_RX_MODE_TTE;
 
@@ -356,32 +356,28 @@ static void HandleReceive(void)
 	     Mode == END_OF_RX_MODE_SKIP   &&
 	     gNextTimeslice40ms            &&
 	     gEeprom.TAIL_TONE_ELIMINATION &&
-	    (gCurrentCodeType == CODE_TYPE_DIGITAL || gCurrentCodeType == CODE_TYPE_REVERSE_DIGITAL) &&
+	     (gCurrentCodeType == CODE_TYPE_DIGITAL || gCurrentCodeType == CODE_TYPE_REVERSE_DIGITAL) &&
 	     BK4819_GetCTCType() == 1)
 		Mode = END_OF_RX_MODE_TTE;
 	else
 		gNextTimeslice40ms = false;
 
 Skip:
-	switch (Mode)
-	{
+	switch (Mode) {
 		case END_OF_RX_MODE_SKIP:
 			break;
 
 		case END_OF_RX_MODE_END:
 			RADIO_SetupRegisters(true);
 
-			#ifdef ENABLE_NOAA
-				if (IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
-					gNOAACountdown_10ms = 300;         // 3 sec
-			#endif
-
+#ifdef ENABLE_NOAA
+			if (IS_NOAA_CHANNEL(gRxVfo->CHANNEL_SAVE))
+				gNOAACountdown_10ms = 300;         // 3 sec
+#endif
 			gUpdateDisplay = true;
 
-			if (gScanStateDir != SCAN_OFF)
-			{
-				switch (gEeprom.SCAN_RESUME_MODE)
-				{
+			if (gScanStateDir != SCAN_OFF) {
+				switch (gEeprom.SCAN_RESUME_MODE) {
 					case SCAN_RESUME_TO:
 						break;
 
@@ -399,12 +395,11 @@ Skip:
 			break;
 
 		case END_OF_RX_MODE_TTE:
-			if (gEeprom.TAIL_TONE_ELIMINATION)
-			{
+			if (gEeprom.TAIL_TONE_ELIMINATION) {
 				AUDIO_AudioPathOff();
 
-				gTailNoteEliminationCountdown_10ms = 20;
-				gFlagTailNoteEliminationComplete   = false;
+				gTailToneEliminationCountdown_10ms = 20;
+				gFlagTailToneEliminationComplete   = false;
 				gEndOfRxDetectedMaybe = true;
 				gEnableSpeaker        = false;
 			}
@@ -745,7 +740,7 @@ void APP_EndTransmission(bool inmediately)
 	if (inmediately || gEeprom.REPEATER_TAIL_TONE_ELIMINATION == 0) {
 		FUNCTION_Select(FUNCTION_FOREGROUND);
 	} else {
-		gRTTECountdown = gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 10;
+		gRTTECountdown_10ms = gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 10;
 	}
 }
 
@@ -757,21 +752,19 @@ static void HandleVox(void)
 		return;
 #endif
 
-	if (gVoxResumeCountdown == 0)
-	{
+	if (gVoxResumeCountdown == 0) {
 		if (gVoxPauseCountdown)
 			return;
 	}
-	else
-	{
+	else {
 		g_VOX_Lost         = false;
 		gVoxPauseCountdown = 0;
 	}
 
-	#ifdef ENABLE_FMRADIO
-		if (gFmRadioMode)
-			return;
-	#endif
+#ifdef ENABLE_FMRADIO
+	if (gFmRadioMode)
+		return;
+#endif
 
 	if (gCurrentFunction == FUNCTION_RECEIVE || gCurrentFunction == FUNCTION_MONITOR)
 		return;
@@ -779,30 +772,42 @@ static void HandleVox(void)
 	if (gScanStateDir != SCAN_OFF)
 		return;
 
-	if (gVOX_NoiseDetected)
-	{
+	if (gVOX_NoiseDetected) {
 		if (g_VOX_Lost)
 			gVoxStopCountdown_10ms = vox_stop_count_down_10ms;
 		else if (gVoxStopCountdown_10ms == 0)
 			gVOX_NoiseDetected = false;
 
 		if (gCurrentFunction == FUNCTION_TRANSMIT && !gPttIsPressed && !gVOX_NoiseDetected) {
-			APP_EndTransmission(false);
-			gUpdateStatus = true;
-			gUpdateDisplay = true;
+			if (gFlagEndTransmission) {
+				//if (gCurrentFunction != FUNCTION_FOREGROUND)
+					FUNCTION_Select(FUNCTION_FOREGROUND);
+			}
+			else {
+				APP_EndTransmission(true);
+
+				if (gEeprom.REPEATER_TAIL_TONE_ELIMINATION == 0) {
+					//if (gCurrentFunction != FUNCTION_FOREGROUND)
+						FUNCTION_Select(FUNCTION_FOREGROUND);
+				}
+				else
+					gRTTECountdown_10ms = gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 10;
+			}
+
+			gUpdateStatus        = true;
+			gUpdateDisplay       = true;
+			gFlagEndTransmission = false;
 		}
 		return;
 	}
 
-	if (g_VOX_Lost)
-	{
+	if (g_VOX_Lost) {
 		gVOX_NoiseDetected = true;
 
 		if (gCurrentFunction == FUNCTION_POWER_SAVE)
 			FUNCTION_Select(FUNCTION_FOREGROUND);
 
-		if (gCurrentFunction != FUNCTION_TRANSMIT && !SerialConfigInProgress())
-		{
+		if (gCurrentFunction != FUNCTION_TRANSMIT && !SerialConfigInProgress()) {
 #ifdef ENABLE_DTMF_CALLING
 			gDTMF_ReplyState = DTMF_REPLY_NONE;
 #endif
@@ -1120,12 +1125,6 @@ void APP_TimeSlice10ms(void)
 	}
 #endif
 
-#ifdef ENABLE_AM_FIX
-	if (gRxVfo->Modulation == MODULATION_AM) {
-		AM_fix_10ms(gEeprom.RX_VFO);
-	}
-#endif
-
 #ifdef ENABLE_UART
 	if (UART_IsCommandAvailable()) {
 		__disable_irq();
@@ -1148,8 +1147,7 @@ void APP_TimeSlice10ms(void)
 #endif
 	}
 
-	if (gUpdateDisplay)
-	{
+	if (gUpdateDisplay) {
 		gUpdateDisplay = false;
 		GUI_DisplayScreen();
 	}
@@ -1176,74 +1174,70 @@ void APP_TimeSlice10ms(void)
 		gVoxPauseCountdown--;
 #endif
 
-	if (gCurrentFunction == FUNCTION_TRANSMIT)
-	{
-		#ifdef ENABLE_ALARM
-			if (gAlarmState == ALARM_STATE_TXALARM || gAlarmState == ALARM_STATE_SITE_ALARM)
-			{
-				uint16_t Tone;
+	if (gCurrentFunction == FUNCTION_TRANSMIT) {
+#ifdef ENABLE_ALARM
+		if (gAlarmState == ALARM_STATE_TXALARM || gAlarmState == ALARM_STATE_SITE_ALARM) {
+			uint16_t Tone;
 
-				gAlarmRunningCounter++;
-				gAlarmToneCounter++;
+			gAlarmRunningCounter++;
+			gAlarmToneCounter++;
 
-				Tone = 500 + (gAlarmToneCounter * 25);
-				if (Tone > 1500)
-				{
-					Tone              = 500;
+			Tone = 500 + (gAlarmToneCounter * 25);
+			if (Tone > 1500) {
+				Tone              = 500;
+				gAlarmToneCounter = 0;
+			}
+
+			BK4819_SetScrambleFrequencyControlWord(Tone);
+
+			if (gEeprom.ALARM_MODE == ALARM_MODE_TONE && gAlarmRunningCounter == 512) {
+				gAlarmRunningCounter = 0;
+
+				if (gAlarmState == ALARM_STATE_TXALARM) {
+					gAlarmState = ALARM_STATE_SITE_ALARM;
+
+					if(gEeprom.TAIL_TONE_ELIMINATION)
+						RADIO_SendCssTail();
+					BK4819_SetupPowerAmplifier(0, 0);
+					BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
+					BK4819_Enable_AfDac_DiscMode_TxDsp();
+					BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
+
+					GUI_DisplayScreen();
+				}
+				else {
+					gAlarmState = ALARM_STATE_TXALARM;
+
+					GUI_DisplayScreen();
+
+					BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
+					RADIO_SetTxParameters();
+					BK4819_TransmitTone(true, 500);
+					SYSTEM_DelayMs(2);
+					AUDIO_AudioPathOn();
+
+					gEnableSpeaker    = true;
 					gAlarmToneCounter = 0;
 				}
-
-				BK4819_SetScrambleFrequencyControlWord(Tone);
-
-				if (gEeprom.ALARM_MODE == ALARM_MODE_TONE && gAlarmRunningCounter == 512)
-				{
-					gAlarmRunningCounter = 0;
-
-					if (gAlarmState == ALARM_STATE_TXALARM)
-					{
-						gAlarmState = ALARM_STATE_SITE_ALARM;
-
-						RADIO_EnableCxCSS();
-						BK4819_SetupPowerAmplifier(0, 0);
-						BK4819_ToggleGpioOut(BK4819_GPIO1_PIN29_PA_ENABLE, false);
-						BK4819_Enable_AfDac_DiscMode_TxDsp();
-						BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, false);
-
-						GUI_DisplayScreen();
-					}
-					else
-					{
-						gAlarmState = ALARM_STATE_TXALARM;
-
-						GUI_DisplayScreen();
-
-						BK4819_ToggleGpioOut(BK4819_GPIO5_PIN1_RED, true);
-						RADIO_SetTxParameters();
-						BK4819_TransmitTone(true, 500);
-						SYSTEM_DelayMs(2);
-						AUDIO_AudioPathOn();
-
-						gEnableSpeaker    = true;
-						gAlarmToneCounter = 0;
-					}
-				}
 			}
-		#endif
-
+		}
+#endif
 		// repeater tail tone elimination
-		if (gRTTECountdown > 0 && gRTTECountdown-- == 0) {
-			FUNCTION_Select(FUNCTION_FOREGROUND);
-			gUpdateStatus  = true;
-			gUpdateDisplay = true;
+		if (gRTTECountdown_10ms > 0) {
+			if (--gRTTECountdown_10ms == 0) {
+				//if (gCurrentFunction != FUNCTION_FOREGROUND)
+					FUNCTION_Select(FUNCTION_FOREGROUND);
+
+				gUpdateStatus  = true;
+				gUpdateDisplay = true;
+			}
 		}
 	}
 
 #ifdef ENABLE_FMRADIO
-	if (gFmRadioMode && gFM_RestoreCountdown_10ms > 0)
-	{
-		if (--gFM_RestoreCountdown_10ms == 0)
-		{	// switch back to FM radio mode
-			FM_Start();
+	if (gFmRadioMode && gFM_RestoreCountdown_10ms > 0) {
+		if (--gFM_RestoreCountdown_10ms == 0) {	
+			FM_Start(); // switch back to FM radio mode
 			GUI_SelectNextDisplay(DISPLAY_FM);
 		}
 	}
@@ -1253,8 +1247,7 @@ void APP_TimeSlice10ms(void)
 	SCANNER_TimeSlice10ms();
 
 #ifdef ENABLE_AIRCOPY
-	if (gScreenToDisplay == DISPLAY_AIRCOPY && gAircopyState == AIRCOPY_TRANSFER && gAirCopyIsSendMode == 1)
-	{
+	if (gScreenToDisplay == DISPLAY_AIRCOPY && gAircopyState == AIRCOPY_TRANSFER && gAirCopyIsSendMode == 1) {
 		if (!AIRCOPY_SendMessage()) {
 			GUI_DisplayScreen();
 		}
@@ -1477,7 +1470,7 @@ void APP_TimeSlice500ms(void)
 #endif
 
 			if (disp == DISPLAY_INVALID
-#ifndef ENABLE_NO_CODE_SCAN_TIMEOUT
+#ifdef ENABLE_NO_CODE_SCAN_TIMEOUT
 				&& !SCANNER_IsScanning()
 #endif
 			) {
@@ -1782,6 +1775,11 @@ static void ProcessKey(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld)
 #if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 		else if ((!bKeyHeld && bKeyPressed) || (gAlarmState == ALARM_STATE_TX1750 && bKeyHeld && !bKeyPressed)) {
 			ALARM_Off();
+
+			if (gEeprom.REPEATER_TAIL_TONE_ELIMINATION == 0)
+				FUNCTION_Select(FUNCTION_FOREGROUND);
+			else
+				gRTTECountdown_10ms = gEeprom.REPEATER_TAIL_TONE_ELIMINATION * 10;
 
 			if (Key == KEY_PTT)
 				gPttWasPressed  = true;

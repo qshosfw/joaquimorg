@@ -573,14 +573,14 @@ void MSG_Send(const char txMessage[TX_MSG_LENGTH], bool bServiceMessage) {
 		//RADIO_SetTxParameters();
 		FUNCTION_Select(FUNCTION_TRANSMIT);
 		//SYSTEM_DelayMs(500);
-		BK4819_PlayRogerNormal(98);
+		//BK4819_PlayRogerNormal(98);
 		SYSTEM_DelayMs(100);
 
-		BK4819_ExitTxMute();
+		//BK4819_ExitTxMute();
 		
 		MSG_FSKSendData();
 
-		//SYSTEM_DelayMs(100);
+		SYSTEM_DelayMs(100);
 
 		APP_EndTransmission(true);
 		RADIO_SetVfoState(VFO_STATE_NORMAL);
@@ -658,7 +658,7 @@ void MSG_StorePacket(const uint16_t interrupt_bits) {
 			#ifdef ENABLE_MESSENGER_DELIVERY_NOTIFICATION
 				// If the next 4 bytes are "RCVD", then it's a delivery notification
 				if (msgFSKBuffer[5] == 'R' && msgFSKBuffer[6] == 'C' && msgFSKBuffer[7] == 'V' && msgFSKBuffer[8] == 'D') {
-					UART_printf("SVC<RCPT\r\n");
+					UART_printf("SVC<RCPT\n");
 					rxMessage[3][strlen(rxMessage[3])] = '+';
 					gUpdateStatus = true;
 					gUpdateDisplay = true;
@@ -672,11 +672,10 @@ void MSG_StorePacket(const uint16_t interrupt_bits) {
 				else
 				{
 					snprintf(rxMessage[3], TX_MSG_LENGTH + 2, "< %s", &msgFSKBuffer[2]);
-				}
-
-			#ifdef ENABLE_MESSENGER_UART
-				UART_printf("SMS<%s\r\n", &msgFSKBuffer[2]);
-			#endif
+					#ifdef ENABLE_MESSENGER_UART
+					UART_printf("SMS%s\n", rxMessage[3]);
+					#endif
+				}			
 
 				if ( gScreenToDisplay != DISPLAY_MSG ) {
 					hasNewMessage = 1;
@@ -693,10 +692,12 @@ void MSG_StorePacket(const uint16_t interrupt_bits) {
 		}
 
 		gFSKWriteIndex = 0;
+		#ifdef ENABLE_MESSENGER_DELIVERY_NOTIFICATION		
 		// Transmit a message to the sender that we have received the message (Unless it's a service message)
 		if (msgFSKBuffer[0] == 'M' && msgFSKBuffer[1] == 'S' && msgFSKBuffer[2] != 0x1b) {
 			MSG_Send("\x1b\x1b\x1bRCVD                      ", true);
 		}
+		#endif
 	}
 }
 

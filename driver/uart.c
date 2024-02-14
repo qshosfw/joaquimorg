@@ -26,21 +26,27 @@ uint8_t UART_DMA_Buffer[256];
 
 void UART_Init(void)
 {
-	uint32_t Delta;
-	uint32_t Positive;
-	uint32_t Frequency;
+	//uint32_t Delta;
+	//uint32_t Positive;
+	//uint32_t Frequency;
 
 	UART1->CTRL = (UART1->CTRL & ~UART_CTRL_UARTEN_MASK) | UART_CTRL_UARTEN_BITS_DISABLE;
-	Delta = SYSCON_RC_FREQ_DELTA;
-	Positive = (Delta & SYSCON_RC_FREQ_DELTA_RCHF_SIG_MASK) >> SYSCON_RC_FREQ_DELTA_RCHF_SIG_SHIFT;
-	Frequency = (Delta & SYSCON_RC_FREQ_DELTA_RCHF_DELTA_MASK) >> SYSCON_RC_FREQ_DELTA_RCHF_DELTA_SHIFT;
+	//Delta = SYSCON_RC_FREQ_DELTA;
+	//Positive = (Delta & SYSCON_RC_FREQ_DELTA_RCHF_SIG_MASK) >> SYSCON_RC_FREQ_DELTA_RCHF_SIG_SHIFT;
+	/*Frequency = (Delta & SYSCON_RC_FREQ_DELTA_RCHF_DELTA_MASK) >> SYSCON_RC_FREQ_DELTA_RCHF_DELTA_SHIFT;
 	if (Positive) {
 		Frequency += 48000000U;
 	} else {
 		Frequency = 48000000U - Frequency;
-	}
+	}*/
 
-	UART1->BAUD = Frequency / 39053U;
+	// 48M, the baud rate is set to 115200, then UARTDIV=48000000/115200=416.6, 417 can be selected based on rounding.
+	//UART1->BAUD = Frequency / 38400U;
+	UART1->BAUD = 48000000U / 38400U;
+	
+	//UART1->BAUD = Frequency / 115200;
+	//UART1->BAUD = 48000000U / 128000;
+
 	UART1->CTRL = UART_CTRL_RXEN_BITS_ENABLE | UART_CTRL_TXEN_BITS_ENABLE | UART_CTRL_RXDMAEN_BITS_ENABLE;
 	UART1->RXTO = 4;
 	UART1->FC = 0;

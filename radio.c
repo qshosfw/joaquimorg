@@ -17,7 +17,6 @@
 #include "driver/bk4819-regs.h"
 #include <string.h>
 
-#include "am_fix.h"
 #include "app/dtmf.h"
 #ifdef ENABLE_FMRADIO
 	#include "app/fm.h"
@@ -315,7 +314,8 @@ void RADIO_ConfigureChannel(const unsigned int VFO, const unsigned int configure
 #ifdef ENABLE_DTMF_CALLING
 			pVfo->DTMF_DECODING_ENABLE = ((data[5] >> 0) & 1u) ? true : false;
 #endif
-			pVfo->DTMF_PTT_ID_TX_MODE  = ((data[5] >> 1) & 7u);
+			uint8_t pttId = ((data[5] >> 1) & 7u);
+			pVfo->DTMF_PTT_ID_TX_MODE  = pttId < ARRAY_SIZE(gSubMenu_PTT_ID) ? pttId : PTT_ID_OFF;
 		}
 
 		// ***************
@@ -503,11 +503,6 @@ void RADIO_ApplyOffset(VFO_Info_t *pInfo)
 			break;
 	}
 
-	if (Frequency < frequencyBandTable[0].lower)
-		Frequency = frequencyBandTable[0].lower;
-	else if (Frequency > frequencyBandTable[BAND_N_ELEM - 1].upper)
-		Frequency = frequencyBandTable[BAND_N_ELEM - 1].upper;
-
 	pInfo->freq_config_TX.Frequency = Frequency;
 }
 
@@ -549,12 +544,7 @@ void RADIO_SetupRegisters(bool switchToForeground)
 		case BK4819_FILTER_BW_WIDE:
 		case BK4819_FILTER_BW_NARROW:
 		case BK4819_FILTER_BW_NARROWER:
-			#ifdef ENABLE_AM_FIX
-//				BK4819_SetFilterBandwidth(Bandwidth, gRxVfo->Modulation == MODULATION_AM && gSetting_AM_fix);
-				BK4819_SetFilterBandwidth(Bandwidth, true);
-			#else
-				BK4819_SetFilterBandwidth(Bandwidth, false);
-			#endif
+			BK4819_SetFilterBandwidth(Bandwidth, false);
 			break;
 	}
 
@@ -785,12 +775,7 @@ void RADIO_SetTxParameters(void)
 		case BK4819_FILTER_BW_WIDE:
 		case BK4819_FILTER_BW_NARROW:
 		case BK4819_FILTER_BW_NARROWER:
-			#ifdef ENABLE_AM_FIX
-//				BK4819_SetFilterBandwidth(Bandwidth, gCurrentVfo->Modulation == MODULATION_AM && gSetting_AM_fix);
-				BK4819_SetFilterBandwidth(Bandwidth, true);
-			#else
-				BK4819_SetFilterBandwidth(Bandwidth, false);
-			#endif
+			BK4819_SetFilterBandwidth(Bandwidth, false);
 			break;
 	}
 
@@ -862,7 +847,7 @@ void RADIO_SetModulation(ModulationMode_t modulation)
 	BK4819_WriteRegister(BK4819_REG_3D, modulation == MODULATION_USB ? 0 : 0x2AAB);
 	BK4819_SetRegValue(afcDisableRegSpec, modulation != MODULATION_FM);
 
-	RADIO_SetupAGC(modulation == MODULATION_AM, false);
+	//RADIO_SetupAGC(modulation == MODULATION_AM, false);
 }
 
 void RADIO_SetupAGC(bool listeningAM, bool disable)
@@ -876,20 +861,11 @@ void RADIO_SetupAGC(bool listeningAM, bool disable)
 
 	if(!listeningAM) { // if not actively listening AM we don't need any AM specific regulation
 		BK4819_SetAGC(!disable);
-		BK4819_InitAGC(false);
+		BK4819_InitAGC();
 	}
 	else {
-#ifdef ENABLE_AM_FIX
-		if(gSetting_AM_fix) { // if AM fix active lock AGC so AM-fix can do it's job
-			BK4819_SetAGC(0);
-			AM_fix_enable(!disable);
-		}
-		else
-#endif
-		{
-			BK4819_SetAGC(!disable);
-			BK4819_InitAGC(true);
-		}
+		BK4819_SetAGC(!disable);
+		BK4819_InitAGC();
 	}
 }
 
@@ -998,9 +974,9 @@ void RADIO_PrepareTX(void)
 
 	gTxTimerCountdown_500ms = 0;            // no timeout
 
-	#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
+#if defined(ENABLE_ALARM) || defined(ENABLE_TX1750)
 	if (gAlarmState == ALARM_STATE_OFF)
-	#endif
+#endif
 	{
 		if (gEeprom.TX_TIMEOUT_TIMER == 0)
 			gTxTimerCountdown_500ms = 60;   // 30 sec
@@ -1011,14 +987,15 @@ void RADIO_PrepareTX(void)
 	}
 
 	gTxTimeoutReached    = false;
-	gRTTECountdown       = 0;
+	gFlagEndTransmission = false;
+	gRTTECountdown_10ms  = 0;
 
 #ifdef ENABLE_DTMF_CALLING
 	gDTMF_ReplyState     = DTMF_REPLY_NONE;
 #endif
 }
 
-void RADIO_EnableCxCSS(void)
+void RADIO_SendCssTail(void)
 {
 	switch (gCurrentVfo->pTX->CodeType) {
 	case CODE_TYPE_DIGITAL:
@@ -1039,7 +1016,8 @@ void RADIO_SendEndOfTransmission(void)
 	DTMF_SendEndOfTransmission();
 
 	// send the CTCSS/DCS tail tone - allows the receivers to mute the usual FM squelch tail/crash
-	RADIO_EnableCxCSS();
+	if(gEeprom.TAIL_TONE_ELIMINATION)
+		RADIO_SendCssTail();
 	RADIO_SetupRegisters(false);
 }
 
@@ -1049,7 +1027,8 @@ void RADIO_PrepareCssTX(void)
 
 	SYSTEM_DelayMs(200);
 
-	RADIO_EnableCxCSS();
+	if(gEeprom.TAIL_TONE_ELIMINATION)
+		RADIO_SendCssTail();
 	RADIO_SetupRegisters(true);
 }
 

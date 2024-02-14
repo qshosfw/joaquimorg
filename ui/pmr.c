@@ -5,9 +5,6 @@
 
 #include "driver/st7565.h"
 #include "driver/bk4819.h"
-#ifdef ENABLE_AM_FIX
-	#include "am_fix.h"
-#endif
 #include "external/printf/printf.h"
 #include "misc.h"
 #include "settings.h"
@@ -72,12 +69,7 @@ void PMR_DisplayRSSIBar(const bool now)
 		memset(p_line, 0, LCD_WIDTH);
 
 	const int16_t s0_dBm   = -gEeprom.S0_LEVEL;                  // S0 .. base level
-	const int16_t rssi_dBm =
-		BK4819_GetRSSI_dBm()
-#ifdef ENABLE_AM_FIX
-		+ ((gSetting_AM_fix && gRxVfo->Modulation == MODULATION_AM) ? AM_fix_get_gain_diff() : 0)
-#endif
-		+ dBmCorrTable[gRxVfo->Band];
+	const int16_t rssi_dBm = BK4819_GetRSSI_dBm() + dBmCorrTable[gRxVfo->Band];
 
 	int s0_9 = gEeprom.S0_LEVEL - gEeprom.S9_LEVEL;
 	const uint8_t s_level = MIN(MAX((int32_t)(rssi_dBm - s0_dBm)*100 / (s0_9*100/9), 0), 9); // S0 - S9

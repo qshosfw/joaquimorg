@@ -35,9 +35,6 @@
 #include "inputbox.h"
 #include "menu.h"
 #include "ui.h"
-#ifdef ENABLE_DOCK
-	#include "app/uart.h"
-#endif
 
 const t_menu_item MenuList[] =
 {
@@ -119,17 +116,11 @@ const t_menu_item MenuList[] =
 	{"D List", VOICE_ID_INVALID,                       MENU_D_LIST        },
 #endif
 	{"D Live", VOICE_ID_INVALID,                       MENU_D_LIVE_DEC    }, // live DTMF decoder
-#ifdef ENABLE_AM_FIX
-	{"AM Fix", VOICE_ID_INVALID,                       MENU_AM_FIX        },
-#endif
 #ifdef ENABLE_VOX
 	{"VOX",    VOICE_ID_VOX,                           MENU_VOX           },
 #endif
 	{"BatVol", VOICE_ID_INVALID,                       MENU_VOL           }, // was "VOL"
 	{"RxMode", VOICE_ID_DUAL_STANDBY,                  MENU_TDR           },
-#ifdef ENABLE_DOCK
-	{"Remote", VOICE_ID_INVALID,     		           MENU_REMOTE_UI     },
-#endif	
 	{"Sql",    VOICE_ID_SQUELCH,                       MENU_SQL           },
 
 	// hidden menu items from here on
@@ -633,13 +624,7 @@ void UI_DisplayMenu(void)
 		case MENU_ABR_ON_TX_RX:
 			strcpy(String, gSubMenu_RX_TX[gSubMenuSelection]);
 			break;
-			
-		#ifdef ENABLE_DOCK
-			case MENU_REMOTE_UI:
-		#endif
-		#ifdef ENABLE_AM_FIX
-			case MENU_AM_FIX:
-		#endif
+
 		case MENU_BCL:
 		case MENU_BEEP:
 		case MENU_S_ADD1:

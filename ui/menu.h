@@ -104,9 +104,6 @@ enum
 	MENU_VOL,
 	MENU_BAT_TXT,
 	MENU_AM,
-#ifdef ENABLE_AM_FIX
-	MENU_AM_FIX,
-#endif
 #ifdef ENABLE_NOAA
 	MENU_NOAA_S,
 #endif
@@ -127,9 +124,6 @@ enum
 	MENU_F2LONG,
 	MENU_MLONG,
 	MENU_BATTYP,
-#ifdef ENABLE_DOCK
-	MENU_REMOTE_UI
-#endif	
 };
 
 extern const uint8_t FIRST_HIDDEN_MENU_ITEM;

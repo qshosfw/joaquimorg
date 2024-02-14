@@ -91,14 +91,6 @@ bool              gSetting_ScrambleEnable;
 
 enum BacklightOnRxTx_t gSetting_backlight_on_tx_rx;
 
-#ifdef ENABLE_AM_FIX
-	bool          gSetting_AM_fix;
-#endif
-
-#ifdef ENABLE_DOCK
-	bool		  gSetting_Remote_UI = true;
-#endif
-
 #ifdef ENABLE_AUDIO_BAR
 	bool          gSetting_mic_bar;
 #endif
@@ -136,7 +128,7 @@ volatile bool     gNextTimeslice_500ms;
 volatile uint16_t gTxTimerCountdown_500ms;
 volatile bool     gTxTimeoutReached;
 
-volatile uint16_t gTailNoteEliminationCountdown_10ms;
+volatile uint16_t gTailToneEliminationCountdown_10ms;
 
 volatile uint8_t    gVFOStateResumeCountdown_500ms;
 
@@ -147,7 +139,7 @@ volatile uint8_t    gVFOStateResumeCountdown_500ms;
 bool              gEnableSpeaker;
 uint8_t           gKeyInputCountdown = 0;
 uint8_t           gKeyLockCountdown;
-uint8_t           gRTTECountdown;
+uint8_t           gRTTECountdown_10ms;
 bool              bIsInLockScreen;
 uint8_t           gUpdateStatus;
 uint8_t           gFoundCTCSS;
@@ -202,6 +194,7 @@ bool              g_SquelchLost;
 
 volatile uint16_t gFlashLightBlinkCounter;
 
+bool              gFlagEndTransmission;
 uint8_t           gNextMrChannel;
 ReceptionMode_t   gRxReceptionMode;
 
@@ -240,7 +233,7 @@ volatile bool     gNextTimeslice40ms;
 	volatile uint16_t gNOAACountdown_10ms = 0;
 	volatile bool     gScheduleNOAA       = true;
 #endif
-volatile bool     gFlagTailNoteEliminationComplete;
+volatile bool     gFlagTailToneEliminationComplete;
 #ifdef ENABLE_FMRADIO
 	volatile bool gScheduleFM;
 #endif
@@ -276,4 +269,37 @@ unsigned long StrToUL(const char * str)
 		ul = ul * 10 + (uint8_t)(c-'0');
 	}
 	return ul;
+}
+
+sLevelAttributes GetSLevelAttributes(const int16_t rssi, const uint32_t frequency)
+{
+	sLevelAttributes att;
+	// S0 .. base level
+	int16_t      s0_dBm       = -130;
+
+	// all S1 on max gain, no antenna
+	const int8_t dBmCorrTable[7] = {
+		-5, // band 1
+		-38, // band 2
+		-37, // band 3
+		-20, // band 4
+		-23, // band 5
+		-23, // band 6
+		-16  // band 7
+	};
+
+	// use UHF/VHF S-table for bands above HF
+	if(frequency > HF_FREQUENCY)
+		s0_dBm-=20;
+
+	att.dBmRssi = Rssi2DBm(rssi)+dBmCorrTable[FREQUENCY_GetBand(frequency)];
+	att.sLevel  = MIN(MAX((att.dBmRssi - s0_dBm) / 6, 0), 9);
+	att.over    = MIN(MAX(att.dBmRssi - (s0_dBm + 9*6), 0), 99);
+
+	return att;
+}
+
+int Rssi2DBm(const uint16_t rssi)
+{
+	return (rssi >> 1) - 160;
 }
